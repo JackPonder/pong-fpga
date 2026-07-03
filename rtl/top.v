@@ -8,4 +8,11 @@ module top
     output vSync
 );
 
+wire clkPixel;
+clkWiz pll (
+    .clkIn(clk),
+    .clkOut(clkPixel),
+    .reset(1'b0)
+);
+
 endmodule
