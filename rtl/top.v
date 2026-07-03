@@ -15,4 +15,14 @@ clkWiz pll (
     .reset(1'b0)
 );
 
+vgaController controller (
+    .clk(clkPixel),
+    .rst(1'b0),
+    .hSync(hSync),
+    .vSync(vSync),
+    .vgaRed(vgaRed),
+    .vgaGreen(vgaGreen),
+    .vgaBlue(vgaBlue)
+);
+
 endmodule
