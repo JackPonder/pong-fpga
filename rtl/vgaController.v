@@ -32,19 +32,36 @@ vgaTimingGenerator #(
     .y(y)
 );
 
+localparam PIXEL_COUNT = WIDTH * HEIGHT;
 localparam COLOR_COUNT = 2;
+localparam BITS_PER_COLOR = 12;
 
-reg [11:0] colors [0:COLOR_COUNT-1];
-initial $readmemh("colors.mem", colors);
+wire [$clog2(PIXEL_COUNT)-1:0] pixelAddr;
+wire [$clog2(COLOR_COUNT)-1:0] colorAddr;
+wire [BITS_PER_COLOR-1:0] colorData;
 
-reg [$clog2(COLOR_COUNT)-1:0] background [0:HEIGHT-1][0:WIDTH-1];
-initial $readmemh("background.mem", background);
+assign pixelAddr = x + WIDTH * y;
 
-wire [$clog2(COLOR_COUNT)-1:0] colorNum;
-assign colorNum = background[y][x];
+rom #(
+    .DEPTH(PIXEL_COUNT),
+    .WIDTH($clog2(COLOR_COUNT)),
+    .INIT_FILE("background.mem")
+) background (
+    .addr(pixelAddr),
+    .data(colorAddr)
+);
+
+rom #(
+    .DEPTH(COLOR_COUNT),
+    .WIDTH(BITS_PER_COLOR),
+    .INIT_FILE("colors.mem")
+) colors (
+    .addr(colorAddr),
+    .data(colorData)
+);
 
 wire [11:0] colorOut;
-assign colorOut = active ? colors[colorNum] : 0;
+assign colorOut = active ? colorData : 0;
 
 assign {vgaRed, vgaGreen, vgaBlue} = colorOut;
 
