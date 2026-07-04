@@ -8,16 +8,22 @@ module top
     output vSync
 );
 
-wire clkPixel;
-clkWiz pll (
-    .clkIn(clk),
-    .clkOut(clkPixel),
-    .reset(1'b0)
+wire rst;
+assign rst = 0;
+
+wire clkEn;
+clkEnGenerator #(
+    .DIVISOR(4)
+) gen (
+    .clk(clk),
+    .clkEn(clkEn),
+    .reset(rst)
 );
 
 vgaController controller (
-    .clk(clkPixel),
-    .rst(1'b0),
+    .clk(clk),
+    .clkEn(clkEn),
+    .rst(rst),
     .hSync(hSync),
     .vSync(vSync),
     .vgaRed(vgaRed),
