@@ -7,20 +7,27 @@ set script_dir [file normalize [file dirname [info script]]]
 set project_root [file dirname $script_dir]
 
 # Create project and directory structure
-create_project $project_name "$project_root/build" -part $fpga_part -force
+set build_dir "$project_root/build"
+create_project $project_name $build_dir -part $fpga_part -force
 
 # Add design sources
-set rtl_files [glob -nocomplain "$project_root/rtl/*.v"]
-add_files -norecurse $rtl_files
+set rtl_dir "$project_root/rtl"
+set rtl_files [glob -nocomplain "$rtl_dir/*.v" "$rtl_dir/mem/*.mem"]
+add_files $rtl_files
 
 # Add constraints
-set xdc_files [glob -nocomplain "$project_root/constraints/*.xdc"]
-add_files -fileset constrs_1 $xdc_files
-
-# Add IP
-set_property ip_repo_paths [list "$project_root/ip"] [current_project]
-update_ip_catalog
+set constr_dir "$project_root/constraints"
+set const_files [glob -nocomplain "$constr_dir/*.xdc"]
+add_files -fileset constrs_1 $const_files
 
 # Set top module
 set top_module "top"
 set_property top $top_module [current_fileset]
+
+# Add dimulation sources
+set sim_dir "$project_root/sim"
+set sim_files [glob -nocomplain "$sim_dir/*.v" "$sim_dir/*.wcfg"]
+add_files -fileset sim_1 $sim_files
+
+update_compile_order -fileset sources_1
+update_compile_order -fileset sim_1
