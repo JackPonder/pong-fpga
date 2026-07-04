@@ -17,7 +17,7 @@ clkEnGenerator #(
 ) gen (
     .clk(clk),
     .clkEn(clkEn),
-    .reset(rst)
+    .rst(rst)
 );
 
 vgaController controller (
