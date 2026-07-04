@@ -21,7 +21,7 @@ wire [$clog2(HEIGHT)-1:0] y;
 vgaTimingGenerator #(
     .WIDTH(WIDTH),
     .HEIGHT(HEIGHT)
-) display (
+) timingGen (
     .clk(clk),
     .clkEn(clkEn),
     .rst(rst),
@@ -33,35 +33,43 @@ vgaTimingGenerator #(
 );
 
 localparam PIXEL_COUNT = WIDTH * HEIGHT;
-localparam COLOR_COUNT = 2;
-localparam BITS_PER_COLOR = 12;
 
 wire [$clog2(PIXEL_COUNT)-1:0] pixelAddr;
-wire [$clog2(COLOR_COUNT)-1:0] colorAddr;
-wire [BITS_PER_COLOR-1:0] colorData;
+wire bgPixel;
 
 assign pixelAddr = x + WIDTH * y;
 
-rom #(
+blockRom #(
     .DEPTH(PIXEL_COUNT),
-    .WIDTH($clog2(COLOR_COUNT)),
+    .WIDTH(1),
     .INIT_FILE("background.mem")
-) background (
+) backgroundData (
+    .clk(clk),
+    .clkEn(clkEn),
     .addr(pixelAddr),
-    .data(colorAddr)
+    .data(bgPixel)
 );
 
-rom #(
-    .DEPTH(COLOR_COUNT),
-    .WIDTH(BITS_PER_COLOR),
-    .INIT_FILE("colors.mem")
-) colors (
-    .addr(colorAddr),
-    .data(colorData)
-);
+localparam SCORE_1_X_START = 255;
+localparam SCORE_1_X_END = SCORE_1_X_START + 50;
+localparam SCORE_1_Y_START = 125;
+localparam SCORE_1_Y_END = SCORE_1_Y_START + 60;
+
+localparam SCORE_2_X_START = 335;
+localparam SCORE_2_X_END = SCORE_2_X_START + 50;
+localparam SCORE_2_Y_START = 125;
+localparam SCORE_2_Y_END = SCORE_2_Y_START + 60;
+
+wire activeScore1, activeScore2;
+assign activeScore1 = (SCORE_1_X_START <= x) && (x < SCORE_1_X_END) && (SCORE_1_Y_START <= y) && (y < SCORE_1_Y_END);
+assign activeScore2 = (SCORE_2_X_START <= x) && (x < SCORE_2_X_END) && (SCORE_2_Y_START <= y) && (y < SCORE_2_Y_END);
 
 wire [11:0] colorOut;
-assign colorOut = active ? colorData : 0;
+assign colorOut = active ? (
+    activeScore1 ? 12'hF00 :
+    activeScore2 ? 12'h0FF :
+    bgPixel ? 12'hFFF : 0 
+) : 0;
 
 assign {vgaRed, vgaGreen, vgaBlue} = colorOut;
 
