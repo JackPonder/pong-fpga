@@ -2,8 +2,5 @@
 build/
 output/
 
-# Generated IP
-ip/
-!ip/*.xci
-!ip/*.xml
-!ip/*.veo
+# Simulations
+*.wcfg
