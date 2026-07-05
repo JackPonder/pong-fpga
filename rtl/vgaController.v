@@ -37,10 +37,17 @@ vgaTimingGenerator #(
 
 localparam PIXEL_COUNT = WIDTH * HEIGHT;
 
-wire [$clog2(PIXEL_COUNT)-1:0] pixelAddr;
+wire [$clog2(PIXEL_COUNT)-1:0] bgAddress;
 wire bgPixel;
 
-assign pixelAddr = x + WIDTH * y;
+counter #(
+    .MAX_COUNT(PIXEL_COUNT)
+) counterBgAddress (
+    .clk(clk),
+    .clkEn(clkEn && active),
+    .rst(rst),
+    .count(bgAddress)
+);
 
 blockRom #(
     .DEPTH(PIXEL_COUNT),
@@ -49,12 +56,13 @@ blockRom #(
 ) backgroundData (
     .clk(clk),
     .clkEn(clkEn),
-    .addr(pixelAddr),
+    .addr(bgAddress),
     .data(bgPixel)
 );
 
 localparam SCORE_WIDTH = 50;
 localparam SCORE_HEIGHT = 60;
+localparam DIGIT_PIXEL_COUNT = SCORE_WIDTH * SCORE_HEIGHT;
 
 localparam SCORE_1_X_START = 255;
 localparam SCORE_1_X_END = SCORE_1_X_START + SCORE_WIDTH;
@@ -66,40 +74,54 @@ localparam SCORE_2_X_END = SCORE_2_X_START + SCORE_WIDTH;
 localparam SCORE_2_Y_START = 125;
 localparam SCORE_2_Y_END = SCORE_2_Y_START + SCORE_HEIGHT;
 
-wire activeScore1, activeScore2;
-assign activeScore1 = (SCORE_1_X_START <= x) && (x < SCORE_1_X_END) && (SCORE_1_Y_START <= y) && (y < SCORE_1_Y_END);
-assign activeScore2 = (SCORE_2_X_START <= x) && (x < SCORE_2_X_END) && (SCORE_2_Y_START <= y) && (y < SCORE_2_Y_END);
+wire activeScores [0:1];
+wire [$clog2(DIGIT_PIXEL_COUNT)-1:0] digitAddresses [0:1];
 
-localparam DIGIT_PIXEL_COUNT = SCORE_WIDTH * SCORE_HEIGHT;
-localparam DIGITS_PIXEL_COUNT = DIGIT_PIXEL_COUNT * 10;
+assign activeScores[0] = (SCORE_1_X_START <= x) && (x < SCORE_1_X_END) && (SCORE_1_Y_START <= y) && (y < SCORE_1_Y_END);
+assign activeScores[1] = (SCORE_2_X_START <= x) && (x < SCORE_2_X_END) && (SCORE_2_Y_START <= y) && (y < SCORE_2_Y_END);
 
-wire [$clog2(DIGITS_PIXEL_COUNT)-1:0] numberAddr;
-wire numberPixel;
-
-assign numberAddr = ( 
-    activeScore1 ? (
-        (x - SCORE_1_X_START) + (SCORE_WIDTH * (y - SCORE_1_Y_START)) + (DIGIT_PIXEL_COUNT * score1)
-    ) : activeScore2 ? (
-        (x - SCORE_2_X_START) + (SCORE_WIDTH * (y - SCORE_2_Y_START)) + (DIGIT_PIXEL_COUNT * score2)
-    ) : 0
+counter #(
+    .MAX_COUNT(DIGIT_PIXEL_COUNT)
+) counterDigitAddress0 (
+    .clk(clk),
+    .clkEn(clkEn && activeScores[0]),
+    .rst(rst),
+    .count(digitAddresses[0])
 );
+
+counter #(
+    .MAX_COUNT(DIGIT_PIXEL_COUNT)
+) counterDigitAddress1 (
+    .clk(clk),
+    .clkEn(clkEn && activeScores[1]),
+    .rst(rst),
+    .count(digitAddresses[1])
+);
+
+wire [$clog2(DIGIT_PIXEL_COUNT)-1:0] digitAddress = ( 
+    activeScores[0] ? digitAddresses[0] : 
+    activeScores[1] ? digitAddresses[1] : 0
+);
+wire [9:0] digitPixel;
 
 blockRom #(
-    .DEPTH(DIGITS_PIXEL_COUNT),
-    .WIDTH(1),
+    .DEPTH(DIGIT_PIXEL_COUNT),
+    .WIDTH(10),
     .INIT_FILE("digits.mem")
-) numbersData (
+) digitsData (
     .clk(clk),
     .clkEn(clkEn),
-    .addr(numberAddr),
-    .data(numberPixel)
+    .addr(digitAddress),
+    .data(digitPixel)
 );
 
-wire [11:0] colorOut;
-assign colorOut = active ? (
-    activeScore1 ? (numberPixel ? 12'hFFF : 0) :
-    activeScore2 ? (numberPixel ? 12'hFFF : 0) :
-    bgPixel ? 12'hFFF : 0 
+localparam fgColor = 12'hFFF;
+localparam bgColor = 12'h000;
+
+wire [11:0] colorOut = active ? (
+    (activeScores[0] && digitPixel[score1]) || 
+    (activeScores[1] && digitPixel[score2]) || 
+    bgPixel ? fgColor : bgColor
 ) : 0;
 
 assign {vgaRed, vgaGreen, vgaBlue} = colorOut;
