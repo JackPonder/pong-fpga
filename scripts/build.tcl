@@ -8,7 +8,7 @@ set script_dir [file normalize [file dirname [info script]]]
 set project_root [file dirname $script_dir]
 
 # Read design sources
-set src_dir "$project_root/rtl"
+set src_dir "$project_root/src"
 set src_files [glob "$src_dir/*.v"]
 read_verilog $src_files
 
