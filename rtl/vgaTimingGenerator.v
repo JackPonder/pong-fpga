@@ -18,8 +18,8 @@ module vgaTimingGenerator
     output active, // In the visible area
     output hSync, // Horizontal sync, active high, marks the end of a horizontal line    
     output vSync, // Vertical sync, active high, marks the end of a vertical line    
-    output [$clog2(WIDTH)-1:0] x,  
-    output [$clog2(HEIGHT)-1:0] y
+    output [$clog2(WIDTH)-1:0] hPos,  
+    output [$clog2(HEIGHT)-1:0] vPos
 );
     
 localparam H_SYNC_START = WIDTH + H_FRONT_PORCH;
@@ -31,39 +31,36 @@ localparam V_SYNC_END = V_SYNC_START + V_SYNC_WIDTH;
 localparam V_LINE = V_SYNC_END + V_BACK_PORCH;
 
 // Count the position on the screen to decide the VGA regions    
-reg [$clog2(H_LINE)-1:0] hPos = 0;    
-reg [$clog2(V_LINE)-1:0] vPos = 0;    
+reg [$clog2(H_LINE)-1:0] hCount = 0;    
+reg [$clog2(V_LINE)-1:0] vCount = 0;    
 
 always @(posedge clk or posedge rst) begin        
     if (rst) begin            
-        hPos <= 0;            
-        vPos <= 0;        
+        hCount <= 0;            
+        vCount <= 0;        
     end else if (clkEn) begin            
-        if (hPos == H_LINE - 1) begin // End of horizontal line                
-            hPos <= 0;                
-            if (vPos == V_LINE - 1) // End of vertical line                    
-                vPos <= 0;                
+        if (hCount == H_LINE - 1) begin // End of horizontal line                
+            hCount <= 0;                
+            if (vCount == V_LINE - 1) // End of vertical line                    
+                vCount <= 0;                
             else begin                    
-                vPos <= vPos + 1;                
+                vCount <= vCount + 1;                
             end            
         end else begin                
-            hPos <= hPos + 1; 
+            hCount <= hCount + 1; 
         end       
     end    
 end
 
 // Determine active regions    
-wire activeX, activeY;    
-assign activeX = (hPos < WIDTH); 
-assign activeY = (vPos < HEIGHT);     
-assign active = activeX & activeY;      
+assign active = (hCount < WIDTH) & (vCount < HEIGHT);      
 
 // Output x and y coordinates     
-assign x = activeX ? hPos : 0;  
-assign y = activeY ? vPos : 0;
+assign hPos = active ? hCount : 0;  
+assign vPos = active ? vCount : 0;
 
 // Generate the sync signals based on their parameters    
-assign hSync = (H_SYNC_START <= hPos) && (hPos < H_SYNC_END);    
-assign vSync = (V_SYNC_START <= vPos) && (vPos < V_SYNC_END);
+assign hSync = (H_SYNC_START <= hCount) & (hCount < H_SYNC_END);    
+assign vSync = (V_SYNC_START <= vCount) & (vCount < V_SYNC_END);
 
 endmodule
