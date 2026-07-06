@@ -1,9 +1,17 @@
+# VS Code
+.vscode/
+
 # Xilinx
 .Xil/
 
 # Build output
 build/
 output/
+
+# Logs
+*.jou
+*.log
+*.pb
 
 # Simulations
 *.wcfg
