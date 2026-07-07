@@ -6,6 +6,11 @@ module vgaController
     input [3:0] score1,
     input [3:0] score2,
 
+    input [9:0] paddle1hPos,
+    input [9:0] paddle1vPos,
+    input [9:0] paddle2hPos,
+    input [9:0] paddle2vPos,
+
     output hSync,
     output vSync,
     output [3:0] vgaRed,
@@ -127,13 +132,26 @@ blockRom #(
     .data(digitPixel)
 );
 
-localparam fgColor = 12'hFFF;
-localparam bgColor = 12'h000;
-
 wire drawScore1 = activeScore1 & digitPixel[score1];
 wire drawScore2 = activeScore2 & digitPixel[score2];
 
-wire drawPixel = drawScore1 | drawScore2 | bgPixel;
+localparam PADDLE_WIDTH = 10;
+localparam PADDLE_HEIGHT = 50;
+
+wire drawPaddle1 = (
+    (paddle1hPos <= hPos) & (hPos < (paddle1hPos + PADDLE_WIDTH)) & 
+    (paddle1vPos <= vPos) & (vPos < (paddle1vPos + PADDLE_HEIGHT))
+);
+
+wire drawPaddle2 = (
+    (paddle2hPos <= hPos) & (hPos < (paddle2hPos + PADDLE_WIDTH)) & 
+    (paddle2vPos <= vPos) & (vPos < (paddle2vPos + PADDLE_HEIGHT))
+);
+
+localparam fgColor = 12'hFFF;
+localparam bgColor = 12'h000;
+
+wire drawPixel = drawScore1 | drawScore2 | drawPaddle1 | drawPaddle2 | bgPixel;
 wire [11:0] colorOut = active ? (drawPixel ? fgColor : bgColor) : 0;
 
 assign {vgaRed, vgaGreen, vgaBlue} = colorOut;
