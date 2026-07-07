@@ -10,6 +10,8 @@ module vgaController
     input [9:0] paddle1vPos,
     input [9:0] paddle2hPos,
     input [9:0] paddle2vPos,
+    input [9:0] ballhPos,
+    input [9:0] ballvPos,
 
     output hSync,
     output vSync,
@@ -148,10 +150,18 @@ wire drawPaddle2 = (
     (paddle2vPos <= vPos) & (vPos < (paddle2vPos + PADDLE_HEIGHT))
 );
 
+localparam BALL_WIDTH = 10;
+localparam BALL_HEIGHT = 10;
+
+wire drawBall = (
+    (ballhPos <= hPos) & (hPos < (ballhPos + BALL_WIDTH)) & 
+    (ballvPos <= vPos) & (vPos < (ballvPos + BALL_HEIGHT))
+);
+
 localparam fgColor = 12'hFFF;
 localparam bgColor = 12'h000;
 
-wire drawPixel = drawScore1 | drawScore2 | drawPaddle1 | drawPaddle2 | bgPixel;
+wire drawPixel = drawScore1 | drawScore2 | drawPaddle1 | drawPaddle2 | drawBall | bgPixel;
 wire [11:0] colorOut = active ? (drawPixel ? fgColor : bgColor) : 0;
 
 assign {vgaRed, vgaGreen, vgaBlue} = colorOut;
