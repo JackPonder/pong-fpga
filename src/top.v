@@ -9,16 +9,20 @@ module top
     output [3:0] vgaGreen, 
     output [3:0] vgaBlue,
     output hSync, 
-    output vSync
+    output vSync,
+
+    output dp,
+    output [6:0] seg,
+    output [3:0] an
 );
 
-wire [3:0] score1 = sw[15:12];
-wire [3:0] score2 = sw[3:0];
-
-localparam PADDLE_MIN_H_POS = 110;
+localparam PADDLE_MIN_H_POS = 117;
 
 wire [9:0] paddle1vPos = PADDLE_MIN_H_POS + sw[15:8];
 wire [9:0] paddle2vPos = PADDLE_MIN_H_POS + sw[7:0];
+
+wire [3:0] score1 = sw[15:12];
+wire [3:0] score2 = sw[3:0];
 
 vgaController controller (
     .clk(clk),
@@ -34,6 +38,14 @@ vgaController controller (
     .vgaRed(vgaRed),
     .vgaGreen(vgaGreen),
     .vgaBlue(vgaBlue)
+);
+
+sevenSegmentDriver driver (
+    .clk(clk),
+    .rst(1'b0),
+    .dp(dp),
+    .seg(seg),
+    .an(an)
 );
 
 assign led = sw;
