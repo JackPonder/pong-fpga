@@ -1,6 +1,7 @@
 module top
 (
     input clk,
+    input btnC,
     input [15:0] sw,
 
     output [15:0] led,
@@ -11,8 +12,7 @@ module top
     output vSync
 );
 
-wire rst;
-assign rst = 0;
+wire rst = btnC;
 
 wire clkEn;
 clkEnGenerator #(
