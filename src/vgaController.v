@@ -1,7 +1,6 @@
 module vgaController
 (
     input clk,
-    input clkEn,
     input rst,
 
     input [3:0] score1,
@@ -12,6 +11,15 @@ module vgaController
     output [3:0] vgaRed,
     output [3:0] vgaGreen,
     output [3:0] vgaBlue
+);
+
+wire clkEn;
+clkEnGenerator #(
+    .DIVISOR(4)
+) gen (
+    .clk(clk),
+    .clkEn(clkEn),
+    .rst(rst)
 );
 
 localparam SCREEN_WIDTH = 640;
@@ -35,7 +43,6 @@ vgaTimingGenerator #(
     .hPos(hPos),
     .vPos(vPos)
 );
-
 
 wire [$clog2(SCREEN_PIXEL_COUNT)-1:0] bgAddress;
 wire bgPixel;

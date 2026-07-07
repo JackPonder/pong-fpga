@@ -14,18 +14,8 @@ module top
 
 wire rst = btnC;
 
-wire clkEn;
-clkEnGenerator #(
-    .DIVISOR(4)
-) gen (
-    .clk(clk),
-    .clkEn(clkEn),
-    .rst(rst)
-);
-
 vgaController controller (
     .clk(clk),
-    .clkEn(clkEn),
     .rst(rst),
     .score1(sw[15:12]),
     .score2(sw[3:0]),
