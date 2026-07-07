@@ -1,5 +1,4 @@
-module sevenSegmentDriver 
-(
+module sevenSegmentDriver (
     input clk,
     input rst,
 
@@ -10,14 +9,14 @@ module sevenSegmentDriver
 
 wire clkEn;
 clkEnGenerator #(
-    .DIVISOR(250_000)
+    .DIVISOR(100_000)
 ) gen (
     .clk(clk),
     .clkEn(clkEn),
     .rst(rst)
 );
 
-reg [2:0] count;
+reg [2:0] count = 0;
 always @(posedge clk)
     if (clkEn) count <= count + 1;
 
