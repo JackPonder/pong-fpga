@@ -22,7 +22,8 @@ module top
     output [3:0] an
 );
 
-localparam MIN_V_POS = 110;
+localparam OFFSET_WIDTH = 0;
+localparam OFFSET_HEIGHT = 110;
 
 wire [9:0] paddle1vPos;
 wire [9:0] paddle2vPos;
@@ -36,14 +37,14 @@ wire [3:0] score2;
 gameController control (
     .clk(clk),
     .rst(btnC),
-    .paddle1Up(btnU),
-    .paddle1Down(btnL),
-    .paddle2Up(btnR),
-    .paddle2Down(btnD),
-    .paddle1vPos(paddle1vPos),
-    .paddle2vPos(paddle2vPos),
-    .ballhPos(ballhPos),
-    .ballvPos(ballvPos),
+    .paddle1MoveUp(btnU),
+    .paddle1MoveDown(btnL),
+    .paddle2MoveUp(btnR),
+    .paddle2MoveDown(btnD),
+    .paddle1PosV(paddle1vPos),
+    .paddle2PosV(paddle2vPos),
+    .ballPosH(ballhPos),
+    .ballPosV(ballvPos),
     .score1(score1),
     .score2(score2)
 );
@@ -54,11 +55,11 @@ vgaController controller (
     .score1(score1),
     .score2(score2),
     .paddle1hPos(50),
-    .paddle1vPos(MIN_V_POS + paddle1vPos),
+    .paddle1vPos(OFFSET_HEIGHT + paddle1vPos),
     .paddle2hPos(580),
-    .paddle2vPos(MIN_V_POS + paddle2vPos),
-    .ballhPos(ballhPos),
-    .ballvPos(MIN_V_POS + ballvPos),
+    .paddle2vPos(OFFSET_HEIGHT + paddle2vPos),
+    .ballhPos(OFFSET_WIDTH + ballhPos),
+    .ballvPos(OFFSET_HEIGHT + ballvPos),
     .hSync(hSync),
     .vSync(vSync),
     .vgaRed(vgaRed),
