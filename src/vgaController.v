@@ -1,17 +1,17 @@
-module vgaController
-(
+module vgaController (
     input clk,
     input rst,
 
+    input [9:0] paddle1PosH,
+    input [9:0] paddle1PosV,
+    input [9:0] paddle2PosH,
+    input [9:0] paddle2PosV,
+
+    input [9:0] ballPosH,
+    input [9:0] ballPosV,
+
     input [3:0] score1,
     input [3:0] score2,
-
-    input [9:0] paddle1hPos,
-    input [9:0] paddle1vPos,
-    input [9:0] paddle2hPos,
-    input [9:0] paddle2vPos,
-    input [9:0] ballhPos,
-    input [9:0] ballvPos,
 
     output hSync,
     output vSync,
@@ -20,6 +20,7 @@ module vgaController
     output [3:0] vgaBlue
 );
 
+// Run VGA display at 25 MHz
 wire clkEn;
 clkEnGenerator #(
     .DIVISOR(4)
@@ -29,10 +30,12 @@ clkEnGenerator #(
     .rst(rst)
 );
 
+// Screen parameters
 localparam SCREEN_WIDTH = 640;
 localparam SCREEN_HEIGHT = 480; 
 localparam SCREEN_PIXEL_COUNT = SCREEN_WIDTH * SCREEN_HEIGHT;
 
+// Timing parameters
 wire active;
 wire [$clog2(SCREEN_WIDTH)-1:0] hPos;
 wire [$clog2(SCREEN_HEIGHT)-1:0] vPos;
@@ -141,21 +144,21 @@ localparam PADDLE_WIDTH = 10;
 localparam PADDLE_HEIGHT = 50;
 
 wire drawPaddle1 = (
-    (paddle1hPos <= hPos) & (hPos < (paddle1hPos + PADDLE_WIDTH)) & 
-    (paddle1vPos <= vPos) & (vPos < (paddle1vPos + PADDLE_HEIGHT))
+    (paddle1PosH <= hPos) & (hPos < (paddle1PosH + PADDLE_WIDTH)) & 
+    (paddle1PosV <= vPos) & (vPos < (paddle1PosV + PADDLE_HEIGHT))
 );
 
 wire drawPaddle2 = (
-    (paddle2hPos <= hPos) & (hPos < (paddle2hPos + PADDLE_WIDTH)) & 
-    (paddle2vPos <= vPos) & (vPos < (paddle2vPos + PADDLE_HEIGHT))
+    (paddle2PosH <= hPos) & (hPos < (paddle2PosH + PADDLE_WIDTH)) & 
+    (paddle2PosV <= vPos) & (vPos < (paddle2PosV + PADDLE_HEIGHT))
 );
 
 localparam BALL_WIDTH = 10;
 localparam BALL_HEIGHT = 10;
 
 wire drawBall = (
-    (ballhPos <= hPos) & (hPos < (ballhPos + BALL_WIDTH)) & 
-    (ballvPos <= vPos) & (vPos < (ballvPos + BALL_HEIGHT))
+    (ballPosH <= hPos) & (hPos < (ballPosH + BALL_WIDTH)) & 
+    (ballPosV <= vPos) & (vPos < (ballPosV + BALL_HEIGHT))
 );
 
 localparam fgColor = 12'hFFF;

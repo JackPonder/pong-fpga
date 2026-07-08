@@ -1,5 +1,4 @@
-module clkEnGenerator 
-#(
+module clkEnGenerator #(
     parameter DIVISOR = 4
 )(
     input clk,

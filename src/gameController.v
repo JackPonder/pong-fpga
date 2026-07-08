@@ -7,6 +7,8 @@ module gameController (
     input paddle2MoveUp,
     input paddle2MoveDown,
 
+    output [9:0] paddle1PosH,
+    output [9:0] paddle2PosH,
     output reg [9:0] paddle1PosV,
     output reg [9:0] paddle2PosV,
 
@@ -17,7 +19,7 @@ module gameController (
     output reg [3:0] score2
 );
 
-// Run game logic at 1 kHz
+// Run game logic at 100 Hz
 wire clkEn;
 clkEnGenerator #(
     .DIVISOR(1_000_000)
@@ -135,5 +137,9 @@ always @(posedge clk or posedge rst) begin
         score2 <= nextScore2;
     end
 end
+
+// Assign constant outputs
+assign paddle1PosH = 50;
+assign paddle2PosH = 580;
 
 endmodule

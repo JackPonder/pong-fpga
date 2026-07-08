@@ -1,5 +1,4 @@
-module vgaTimingGenerator 
-#(
+module vgaTimingGenerator #(
     parameter WIDTH = 640,
     parameter HEIGHT = 480,
 

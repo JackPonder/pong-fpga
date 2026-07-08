@@ -1,5 +1,4 @@
-module counter
-#(
+module counter #(
     parameter MAX_COUNT = 8
 )(
     input clk,

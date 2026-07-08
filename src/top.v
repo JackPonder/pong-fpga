@@ -1,11 +1,10 @@
-module top
-(
+module top (
     input clk,
 
     input btnC,
-    input btnR,
-    input btnL,
     input btnU,
+    input btnL,
+    input btnR,
     input btnD,
 
     input [15:0] sw,
@@ -25,11 +24,13 @@ module top
 localparam OFFSET_WIDTH = 0;
 localparam OFFSET_HEIGHT = 110;
 
-wire [9:0] paddle1vPos;
-wire [9:0] paddle2vPos;
+wire [9:0] paddle1PosH;
+wire [9:0] paddle2PosH;
+wire [9:0] paddle1PosV;
+wire [9:0] paddle2PosV;
 
-wire [9:0] ballhPos;
-wire [9:0] ballvPos;
+wire [9:0] ballPosH;
+wire [9:0] ballPosV;
 
 wire [3:0] score1;
 wire [3:0] score2;
@@ -37,14 +38,20 @@ wire [3:0] score2;
 gameController control (
     .clk(clk),
     .rst(btnC),
+
     .paddle1MoveUp(btnU),
     .paddle1MoveDown(btnL),
     .paddle2MoveUp(btnR),
     .paddle2MoveDown(btnD),
-    .paddle1PosV(paddle1vPos),
-    .paddle2PosV(paddle2vPos),
-    .ballPosH(ballhPos),
-    .ballPosV(ballvPos),
+
+    .paddle1PosH(paddle1PosH),
+    .paddle2PosH(paddle2PosH),
+    .paddle1PosV(paddle1PosV),
+    .paddle2PosV(paddle2PosV),
+
+    .ballPosH(ballPosH),
+    .ballPosV(ballPosV),
+
     .score1(score1),
     .score2(score2)
 );
@@ -52,24 +59,29 @@ gameController control (
 vgaController controller (
     .clk(clk),
     .rst(1'b0),
+
+    .paddle1PosH(OFFSET_WIDTH + paddle1PosH),
+    .paddle1PosV(OFFSET_HEIGHT + paddle1PosV),
+    .paddle2PosH(OFFSET_WIDTH + paddle2PosH),
+    .paddle2PosV(OFFSET_HEIGHT + paddle2PosV),
+
+    .ballPosH(OFFSET_WIDTH + ballPosH),
+    .ballPosV(OFFSET_HEIGHT + ballPosV),
+
     .score1(score1),
     .score2(score2),
-    .paddle1hPos(50),
-    .paddle1vPos(OFFSET_HEIGHT + paddle1vPos),
-    .paddle2hPos(580),
-    .paddle2vPos(OFFSET_HEIGHT + paddle2vPos),
-    .ballhPos(OFFSET_WIDTH + ballhPos),
-    .ballvPos(OFFSET_HEIGHT + ballvPos),
-    .hSync(hSync),
-    .vSync(vSync),
+
     .vgaRed(vgaRed),
     .vgaGreen(vgaGreen),
-    .vgaBlue(vgaBlue)
+    .vgaBlue(vgaBlue),
+    .hSync(hSync),
+    .vSync(vSync)
 );
 
 sevenSegmentDriver driver (
     .clk(clk),
     .rst(1'b0),
+
     .dp(dp),
     .seg(seg),
     .an(an)

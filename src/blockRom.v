@@ -1,5 +1,4 @@
-module blockRom 
-#(
+module blockRom #(
     parameter DEPTH = 256,
     parameter WIDTH = 8,
     parameter INIT_FILE = ""
