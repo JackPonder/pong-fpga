@@ -17,6 +17,7 @@ module gameController (
     output reg [3:0] score2
 );
 
+// Run game logic at 1 kHz
 wire clkEn;
 clkEnGenerator #(
     .DIVISOR(1_000_000)
@@ -26,6 +27,7 @@ clkEnGenerator #(
     .rst(rst)
 );
 
+// Game parameters
 localparam GAME_WIDTH = 640;
 localparam GAME_HEIGHT = 330;
 
@@ -35,22 +37,24 @@ localparam PADDLE_HEIGHT = 50;
 localparam BALL_WIDTH = 10;
 localparam BALL_HEIGHT = 10;
 
-reg ballMoveRight, nextBallMoveRight;
-reg ballMoveDown, nextBallMoveDown;
+// State variables
+reg [3:0] ballSpeedH;
+reg [3:0] ballSpeedV;
 
-reg [3:0] ballSpeedH = 1;
-reg [3:0] ballSpeedV = 1;
-
-reg [3:0] nextScore1;
-reg [3:0] nextScore2;
+// Next state variables
+reg [9:0] nextPaddle1PosV;
+reg [9:0] nextPaddle2PosV;
 
 reg [9:0] nextBallPosH;
 reg [9:0] nextBallPosV;
 
-reg [9:0] nextPaddle1PosV;
-reg [9:0] nextPaddle2PosV;
+reg [3:0] nextBallSpeedH;
+reg [3:0] nextBallSpeedV;
 
-// Ball and paddle logic
+reg [3:0] nextScore1;
+reg [3:0] nextScore2;
+
+// Ball and paddle movement logic
 always @(*) begin
     // Score tracking
     nextScore1 = score1;
@@ -71,58 +75,64 @@ always @(*) begin
         nextPaddle2PosV = paddle2PosV + 1;
 
     // Ball movement
-    nextBallMoveDown = ballMoveDown;
-    nextBallMoveRight = ballMoveRight;
-    nextBallPosH = ballMoveRight ? (ballPosH + ballSpeedH) : (ballPosH - ballSpeedH);
-    nextBallPosV = ballMoveDown ? (ballPosV + ballSpeedV) : (ballPosV - ballSpeedV);
+    nextBallSpeedH = ballSpeedH;
+    nextBallSpeedV = ballSpeedV;
+    nextBallPosH = ballPosH + {{6{ballSpeedH[3]}}, ballSpeedH};
+    nextBallPosV = ballPosV + {{6{ballSpeedV[3]}}, ballSpeedV};
 
     // Left edge detection
     if (ballPosH == 0) begin
-        nextScore2 = score2 + 1;
+        nextBallSpeedH = ~ballSpeedH + 1;
         nextBallPosH = 315;
         nextBallPosV = 135;
+        nextScore2 = score2 + 1;
     end 
     
     // Right edge detection
     else if (ballPosH == (GAME_WIDTH - BALL_HEIGHT - 1)) begin
-        nextScore1 = score1 + 1;
+        nextBallSpeedH = ~ballSpeedH + 1;
         nextBallPosH = 315;
         nextBallPosV = 155;
+        nextScore1 = score1 + 1;
     end
 
     // Top and bottom edge detection
     if (ballPosV == 0 || ballPosV == (GAME_HEIGHT - BALL_HEIGHT - 1)) begin
-        nextBallMoveDown = !nextBallMoveDown;
-        nextBallPosV = ballMoveDown ? (ballPosV - ballSpeedV) : (ballPosV + ballSpeedV);
+        nextBallSpeedV = ~ballSpeedV + 1;
+        nextBallPosV = ballPosV - {{6{ballSpeedV[3]}}, ballSpeedV};
     end
 end
 
-// Update ball and paddle positions on each clock edge
+// Update ball and paddle positions
 always @(posedge clk or posedge rst) begin
+    // Restart game
     if (rst) begin
-        paddle1PosV <= 0;
-        paddle2PosV <= 0;
+        paddle1PosV <= 140;
+        paddle2PosV <= 140;
 
         ballPosH <= 315;
         ballPosV <= 155;
-        
-        score1 <= 0;
-        score2 <= 0;
 
         ballSpeedH <= 1;
         ballSpeedV <= 1;
-    end else if (clkEn) begin
+
+        score1 <= 0;
+        score2 <= 0;
+    end 
+    
+    // Update ball and paddle positions on each clock edge
+    else if (clkEn) begin
+        paddle1PosV <= nextPaddle1PosV;
+        paddle2PosV <= nextPaddle2PosV;
+
         ballPosH <= nextBallPosH;
         ballPosV <= nextBallPosV;
 
+        ballSpeedH <= nextBallSpeedH;
+        ballSpeedV <= nextBallSpeedV;
+
         score1 <= nextScore1;
         score2 <= nextScore2;
-
-        ballMoveRight <= nextBallMoveRight;
-        ballMoveDown <= nextBallMoveDown;
-
-        paddle1PosV <= nextPaddle1PosV;
-        paddle2PosV <= nextPaddle2PosV;
     end
 end
 
