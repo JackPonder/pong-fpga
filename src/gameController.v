@@ -58,22 +58,20 @@ reg [3:0] nextScore2;
 
 // Ball and paddle movement logic
 always @(*) begin
-    // Score tracking
-    nextScore1 = score1;
-    nextScore2 = score2;
-
     // Left paddle movement
     nextPaddle1PosV = paddle1PosV;
-    if (paddle1MoveUp & paddle1PosV > 0)
+    if (paddle1MoveUp == paddle1MoveDown);
+    else if (paddle1MoveUp & paddle1PosV > 0)
         nextPaddle1PosV = paddle1PosV - 1;
-    if (paddle1MoveDown & paddle1PosV < (GAME_HEIGHT - PADDLE_HEIGHT - 1)) 
+    else if (paddle1MoveDown & paddle1PosV < (GAME_HEIGHT - PADDLE_HEIGHT)) 
         nextPaddle1PosV = paddle1PosV + 1;
 
     // Right paddle movement
     nextPaddle2PosV = paddle2PosV;
-    if (paddle2MoveUp & paddle2PosV > 0)
+    if (paddle2MoveUp == paddle2MoveDown);
+    else if (paddle2MoveUp & paddle2PosV > 0)
         nextPaddle2PosV = paddle2PosV - 1;
-    if (paddle2MoveDown & paddle2PosV < (GAME_HEIGHT - PADDLE_HEIGHT - 1)) 
+    else if (paddle2MoveDown & paddle2PosV < (GAME_HEIGHT - PADDLE_HEIGHT)) 
         nextPaddle2PosV = paddle2PosV + 1;
 
     // Ball movement
@@ -82,26 +80,26 @@ always @(*) begin
     nextBallPosH = ballPosH + {{6{ballSpeedH[3]}}, ballSpeedH};
     nextBallPosV = ballPosV + {{6{ballSpeedV[3]}}, ballSpeedV};
 
+    // Top and bottom edge detection
+    if (nextBallPosV == 0 || nextBallPosV == (GAME_HEIGHT - BALL_HEIGHT))
+        nextBallSpeedV = ~ballSpeedV + 1;
+
     // Left edge detection
+    nextScore2 = score2;
     if (ballPosH == 0) begin
-        nextBallSpeedH = ~ballSpeedH + 1;
-        nextBallPosH = 315;
-        nextBallPosV = 135;
         nextScore2 = score2 + 1;
+        nextBallSpeedH = ~ballSpeedH + 1;
+        nextBallPosH = 314;
+        nextBallPosV = 159;
     end 
     
     // Right edge detection
-    else if (ballPosH == (GAME_WIDTH - BALL_HEIGHT - 1)) begin
-        nextBallSpeedH = ~ballSpeedH + 1;
-        nextBallPosH = 315;
-        nextBallPosV = 155;
+    nextScore1 = score1;
+    if (ballPosH == (GAME_WIDTH - BALL_WIDTH)) begin
         nextScore1 = score1 + 1;
-    end
-
-    // Top and bottom edge detection
-    if (ballPosV == 0 || ballPosV == (GAME_HEIGHT - BALL_HEIGHT - 1)) begin
-        nextBallSpeedV = ~ballSpeedV + 1;
-        nextBallPosV = ballPosV - {{6{ballSpeedV[3]}}, ballSpeedV};
+        nextBallSpeedH = ~ballSpeedH + 1;
+        nextBallPosH = 314;
+        nextBallPosV = 159;
     end
 end
 
@@ -112,8 +110,8 @@ always @(posedge clk or posedge rst) begin
         paddle1PosV <= 140;
         paddle2PosV <= 140;
 
-        ballPosH <= 315;
-        ballPosV <= 155;
+        ballPosH <= 314;
+        ballPosV <= 159;
 
         ballSpeedH <= 1;
         ballSpeedV <= 1;
