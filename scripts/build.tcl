@@ -37,6 +37,7 @@ file mkdir $output_dir
 # Generate reports
 report_utilization -file "$output_dir/utilization.rpt"
 report_timing_summary -file "$output_dir/timing_summary.rpt"
+report_drc -file "$output_dir/drc.rpt"
 
 # Write bitstream
 write_bitstream -force "$output_dir/$design_name.bit"
