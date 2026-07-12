@@ -81,7 +81,7 @@ always @(*) begin
     nextBallPosV = ballPosV + {{6{ballSpeedV[3]}}, ballSpeedV};
 
     // Top and bottom edge detection
-    if (nextBallPosV == 0 || nextBallPosV == (GAME_HEIGHT - BALL_HEIGHT))
+    if (nextBallPosV == 0 | nextBallPosV == (GAME_HEIGHT - BALL_HEIGHT))
         nextBallSpeedV = ~ballSpeedV + 1;
 
     // Left edge detection
@@ -101,7 +101,30 @@ always @(*) begin
         nextBallPosH = 314;
         nextBallPosV = 159;
     end
+
+    // Left paddle collision detection
+    if (checkCollision(nextBallPosH, nextBallPosV, paddle1PosH, paddle1PosV)) begin
+        if (nextBallSpeedH[3] == 1)
+            nextBallSpeedH = ~ballSpeedH + 1;
+    end
+
+    // Right paddle collision detection
+    if (checkCollision(nextBallPosH, nextBallPosV, paddle2PosH, paddle2PosV)) begin
+        if (nextBallSpeedH[3] == 0)
+            nextBallSpeedH = ~ballSpeedH + 1;
+    end
 end
+
+function checkCollision(input [9:0] ballX, ballY, paddleX, paddleY);
+    begin
+        checkCollision = (
+            (ballX + BALL_WIDTH >= paddleX) &&
+            (paddleX + PADDLE_WIDTH >= ballX) &&
+            (ballY + BALL_HEIGHT >= paddleY) &&
+            (paddleY + PADDLE_HEIGHT >= ballY)
+        ) ? 1 : 0;
+    end
+endfunction
 
 // Update ball and paddle positions
 always @(posedge clk or posedge rst) begin
