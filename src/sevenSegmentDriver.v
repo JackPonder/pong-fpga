@@ -19,7 +19,7 @@ clkEnGenerator #(
 
 // Move to next digit on each clock edge
 reg [2:0] count = 0;
-always @(posedge clk) begin
+always @(posedge clk or posedge rst) begin
     if (rst) 
         count <= 0;
     else if (clkEn) 
