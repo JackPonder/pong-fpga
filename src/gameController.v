@@ -56,6 +56,22 @@ reg [3:0] nextBallSpeedV;
 reg [3:0] nextScore1;
 reg [3:0] nextScore2;
 
+// Left paddle angle generator
+wire [3:0] newSpeedY1;
+angleGenerator agLeft (
+    nextBallPosV,
+    nextPaddle1PosV,
+    newSpeedY1
+);
+
+// Right paddle angle generator
+wire [3:0] newSpeedY2;
+angleGenerator agRight (
+    nextBallPosV,
+    nextPaddle2PosV,
+    newSpeedY2
+);
+
 // Ball and paddle movement logic
 always @(*) begin
     // Left paddle movement
@@ -74,56 +90,50 @@ always @(*) begin
     else if (paddle2MoveDown & paddle2PosV < (GAME_HEIGHT - PADDLE_HEIGHT)) 
         nextPaddle2PosV = paddle2PosV + 1;
 
+    // Score tracking
+    nextScore2 = score2;
+    nextScore1 = score1;
+
     // Ball movement
     nextBallSpeedH = ballSpeedH;
     nextBallSpeedV = ballSpeedV;
     nextBallPosH = ballPosH + {{6{ballSpeedH[3]}}, ballSpeedH};
     nextBallPosV = ballPosV + {{6{ballSpeedV[3]}}, ballSpeedV};
 
-    // Top and bottom edge detection
-    if (nextBallPosV == 0 | nextBallPosV == (GAME_HEIGHT - BALL_HEIGHT))
-        nextBallSpeedV = ~ballSpeedV + 1;
-
-    // Left edge detection
-    nextScore2 = score2;
+    // Left and right edge detection
     if (ballPosH == 0) begin
         nextScore2 = score2 + 1;
         nextBallSpeedH = ~ballSpeedH + 1;
-        nextBallPosH = 314;
-        nextBallPosV = 159;
-    end 
-    
-    // Right edge detection
-    nextScore1 = score1;
-    if (ballPosH == (GAME_WIDTH - BALL_WIDTH)) begin
+        nextBallPosH = 315;
+        nextBallPosV = 160;
+    end else if (ballPosH == (GAME_WIDTH - BALL_WIDTH)) begin
         nextScore1 = score1 + 1;
         nextBallSpeedH = ~ballSpeedH + 1;
-        nextBallPosH = 314;
-        nextBallPosV = 159;
+        nextBallPosH = 315;
+        nextBallPosV = 160;
     end
 
-    // Left paddle collision detection
+    // Top and bottom edge detection
+    else if (nextBallPosV == 0 | nextBallPosV == (GAME_HEIGHT - BALL_HEIGHT))
+        nextBallSpeedV = ~ballSpeedV + 1;
+
+    // Left and right paddle collision detection
     if (checkCollision(nextBallPosH, nextBallPosV, paddle1PosH, paddle1PosV)) begin
-        if (nextBallSpeedH[3] == 1)
-            nextBallSpeedH = ~ballSpeedH + 1;
-    end
-
-    // Right paddle collision detection
-    if (checkCollision(nextBallPosH, nextBallPosV, paddle2PosH, paddle2PosV)) begin
-        if (nextBallSpeedH[3] == 0)
-            nextBallSpeedH = ~ballSpeedH + 1;
+        nextBallSpeedH = ~ballSpeedH + 1;
+        nextBallSpeedV = newSpeedY1;
+    end else if (checkCollision(nextBallPosH, nextBallPosV, paddle2PosH, paddle2PosV)) begin
+        nextBallSpeedH = ~ballSpeedH + 1;
+        nextBallSpeedV = newSpeedY2;
     end
 end
 
-function checkCollision(input [9:0] ballX, ballY, paddleX, paddleY);
-    begin
-        checkCollision = (
-            (ballX + BALL_WIDTH >= paddleX) &&
-            (paddleX + PADDLE_WIDTH >= ballX) &&
-            (ballY + BALL_HEIGHT >= paddleY) &&
-            (paddleY + PADDLE_HEIGHT >= ballY)
-        ) ? 1 : 0;
-    end
+function automatic checkCollision(input [9:0] ballX, ballY, paddleX, paddleY);
+    checkCollision = (
+        (ballX + BALL_WIDTH >= paddleX) &&
+        (paddleX + PADDLE_WIDTH >= ballX) &&
+        (ballY + BALL_HEIGHT >= paddleY) &&
+        (paddleY + PADDLE_HEIGHT >= ballY)
+    );
 endfunction
 
 // Update ball and paddle positions
@@ -133,8 +143,8 @@ always @(posedge clk or posedge rst) begin
         paddle1PosV <= 140;
         paddle2PosV <= 140;
 
-        ballPosH <= 314;
-        ballPosV <= 159;
+        ballPosH <= 315;
+        ballPosV <= 160;
 
         ballSpeedH <= 1;
         ballSpeedV <= 1;

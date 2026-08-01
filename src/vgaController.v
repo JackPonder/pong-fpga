@@ -77,11 +77,11 @@ blockRom #(
     .data(bgPixel)
 );
 
-localparam DIGIT_WIDTH = 50;
+localparam DIGIT_WIDTH = 100;
 localparam DIGIT_HEIGHT = 60;
 localparam DIGIT_PIXEL_COUNT = DIGIT_WIDTH * DIGIT_HEIGHT;
 
-localparam SCORE_1_H_START = 255;
+localparam SCORE_1_H_START = 205;
 localparam SCORE_1_H_END = SCORE_1_H_START + DIGIT_WIDTH;
 localparam SCORE_1_V_START = 125;
 localparam SCORE_1_V_END = SCORE_1_V_START + DIGIT_HEIGHT;
@@ -124,11 +124,11 @@ wire [$clog2(DIGIT_PIXEL_COUNT)-1:0] digitAddress = (
     activeScore1 ? digitAddress1 : 
     activeScore2 ? digitAddress2 : 0
 );
-wire [9:0] digitPixel;
+wire [15:0] digitPixel;
 
 blockRom #(
     .DEPTH(DIGIT_PIXEL_COUNT),
-    .WIDTH(10),
+    .WIDTH(16),
     .INIT_FILE("digits.mem")
 ) digitsData (
     .clk(clk),
