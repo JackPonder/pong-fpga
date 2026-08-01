@@ -22,7 +22,7 @@ module gameController (
 // Run game logic at 100 Hz
 wire clkEn;
 clkEnGenerator #(
-    .DIVISOR(1_000_000)
+    .DIVISOR(500_000)
 ) gen (
     .clk(clk),
     .clkEn(clkEn),

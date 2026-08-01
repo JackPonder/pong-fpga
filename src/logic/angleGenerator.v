@@ -21,5 +21,5 @@ always @(*) begin
         (angle < 0) ? -1 : 0
     );
 end
-    
+ 
 endmodule
