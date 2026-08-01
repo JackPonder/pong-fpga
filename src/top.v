@@ -1,24 +1,36 @@
 module top (
     input clk,
 
+    // Buttons
     input btnC,
     input btnU,
     input btnL,
     input btnR,
     input btnD,
 
+    // Switches
     input [15:0] sw,
+
+    // LEDs
     output [15:0] led,
     
+    // VGA display
     output [3:0] vgaRed, 
     output [3:0] vgaGreen, 
     output [3:0] vgaBlue,
     output hSync, 
     output vSync,
 
+    // Seven degment display
     output dp,
     output [6:0] seg,
-    output [3:0] an
+    output [3:0] an,
+
+    // Pmod joystick
+    output sclk,
+    output mosi,
+    input  miso,
+    output cs
 );
 
 localparam OFFSET_WIDTH = 0;
@@ -35,12 +47,30 @@ wire [9:0] ballPosV;
 wire [3:0] score1;
 wire [3:0] score2;
 
+wire [9:0] jstkY;
+wire trigger;
+
+spiMaster spiMaster (
+    .clk        (clk),
+    .rst        (1'b0),
+    
+    .sclk       (sclk),
+    .mosi       (mosi),
+    .miso       (miso),
+    .cs         (cs),
+    
+    .jstkX      (),
+    .jstkY      (jstkY),
+    .trigger    (trigger),
+    .button     ()
+);
+
 gameController control (
     .clk(clk),
-    .rst(btnC),
+    .rst(trigger),
 
-    .paddle1MoveUp(btnU),
-    .paddle1MoveDown(btnL),
+    .paddle1MoveUp(jstkY > 682),
+    .paddle1MoveDown(jstkY < 341),
     .paddle2MoveUp(btnR),
     .paddle2MoveDown(btnD),
 
