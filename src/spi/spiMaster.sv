@@ -23,7 +23,6 @@ spiControl spiControl (
     .rst(rst),
 
     .sclk(sclk),
-    .mosi(mosi),
     .cs(cs),
 
     .readBit(readBit),
@@ -64,5 +63,8 @@ always_ff @(posedge clk) begin
         button  <= bytes[4][0];
     end
 end
-    
+
+// Hold MOSI low
+assign mosi = '0;
+
 endmodule

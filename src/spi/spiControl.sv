@@ -4,7 +4,6 @@ module spiControl (
 
     // SPI slave interface
     output logic sclk,
-    output logic mosi,
     output logic cs,
 
     // SPI master interface
@@ -106,7 +105,6 @@ end
 
 // Output logic
 assign sclk = (state == StRead);
-assign mosi = 1'b0;
 assign cs = (state == StIdle);
 
 assign readBit = (state == StRead) && (count == '0);
