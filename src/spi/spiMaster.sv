@@ -16,37 +16,35 @@ module spiMaster (
 );
 
 // SPI controller
-logic sample, readByte, done;
+logic readBit, readByte, done;
 logic [2:0] byteNum;
-spiControl u_spiControl (
-    .clk         (clk),
-    .rst         (rst),
+spiControl spiControl (
+    .clk(clk),
+    .rst(rst),
 
-    // SPI slave interface
-    .sclk        (sclk),
-    .mosi        (mosi),
-    .cs          (cs),
+    .sclk(sclk),
+    .mosi(mosi),
+    .cs(cs),
 
-    // SPI master signals
-    .sample      (sample),
-    .readByte    (readByte),
-    .byteNum     (byteNum),
-    .done        (done)
+    .readBit(readBit),
+    .readByte(readByte),
+    .byteNum(byteNum),
+    .done(done)
 );
 
-// 8-bit shift register to hold data
+// 8-bit shift register to hold input data
 logic [7:0] data;
 
-// SPI mode 0, sample data on rising edge
+// Read bits from MISO
 always_ff @(posedge clk) begin
-    if (sample) 
+    if (readBit) 
         data <= {data[6:0], miso};
 end
 
-// 5 bytes
+// 5-byte data packet
 logic [7:0] bytes[5];
 
-// Read byte from shift register into RAM
+// Read byte from shift register once 8 bits are read
 always_ff @(posedge clk) begin
     if (readByte)
         bytes[byteNum] <= data;
