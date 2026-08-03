@@ -7,10 +7,8 @@ module spiControl (
     output logic cs,
 
     // SPI master interface
-    output logic [2:0] byteNum,
-    output logic       readBit,
-    output logic       readByte,
-    output logic       done
+    output logic sample,
+    output logic done
 );
 
 // Time spent in each state
@@ -19,6 +17,7 @@ localparam TimeWait  = 1500;
 localparam TimeWrite = 50;
 localparam TimeRead  = 50;
 localparam TimeDelay = 1000;
+localparam TimeDone  = 100;
 
 // State encodings
 typedef enum logic [2:0] {  
@@ -26,27 +25,28 @@ typedef enum logic [2:0] {
     StWait,
     StWrite,
     StRead,
-    StDelay
+    StDelay,
+    StDone
 } spiState;
 
 // State variables
 spiState state, nextState;
-logic [3:0] bitNum, nextBitNum;
-logic [2:0] nextByteNum;
-logic [11:0] count, nextCount;
+logic [2:0] bitNum, nextBitNum;
+logic [2:0] byteNum, nextByteNum;
+logic [11:0] timer;
 
-// Update state on clock edge
+// Update state on each clock edge
 always_ff @(posedge clk) begin
     if (rst) begin
         state <= StIdle;
         bitNum <= '0;
         byteNum <= '0;
-        count <= '0;
+        timer <= '0;
     end else begin
         state <= nextState;
         bitNum <= nextBitNum;
         byteNum <= nextByteNum;
-        count <= nextCount;
+        timer <= (state == nextState) ? (timer + 1'b1) : '0;
     end
 end
 
@@ -56,59 +56,58 @@ always_comb begin
     nextState = state;
     nextBitNum = bitNum;
     nextByteNum = byteNum;
-    nextCount = count + 1'b1;
 
     // State transitions
     unique case (state)
         StIdle:
-        if (count == TimeIdle - 1) begin
+        if (timer == TimeIdle - 1) begin
             nextState = StWait;
-            nextCount = '0;
         end
 
         StWait:
-        if (count == TimeWait - 1) begin
+        if (timer == TimeWait - 1) begin
             nextState = StWrite;
-            nextCount = '0;
         end
 
         StWrite: 
-        if (count == TimeWrite - 1) begin
-            if (bitNum < 8) begin
-                nextState = StRead;
+        if (timer == TimeWrite - 1) begin
+            nextState = StRead;
+        end
+
+        StRead: 
+        if (timer == TimeRead - 1) begin
+            if (bitNum < 7) begin
+                nextState = StWrite; 
                 nextBitNum = bitNum + 1'b1;
             end else if (byteNum < 4) begin
                 nextState = StDelay;
                 nextBitNum = '0;
                 nextByteNum = byteNum + 1'b1;
             end else begin
-                nextState = StIdle;
+                nextState = StDone;
                 nextBitNum = '0;
                 nextByteNum = '0;
             end
-            nextCount = '0;
-        end
-
-        StRead: 
-        if (count == TimeRead - 1) begin
-            nextState = StWrite; 
-            nextCount = '0;
         end
 
         StDelay: 
-        if (count == TimeDelay - 1) begin
+        if (timer == TimeDelay - 1) begin
             nextState = StWrite;
-            nextCount = '0;
+        end
+
+        StDone:
+        if (timer == TimeDone - 1) begin
+            nextState = StIdle;
         end
     endcase
 end
 
 // Output logic
-assign sclk = (state == StRead);
-assign cs = (state == StIdle);
-
-assign readBit = (state == StRead) && (count == '0);
-assign readByte = (state == StWrite) && (count == '0) && (bitNum == 8);
-assign done = (state == StIdle) && (count == '0);
+always_comb begin
+    sclk = (state == StRead);
+    cs = (state == StIdle);
+    sample = (state == StRead) && (timer == '0);
+    done = (state == StDone) && (timer == '0);
+end
 
 endmodule

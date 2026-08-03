@@ -16,8 +16,7 @@ module spiMaster (
 );
 
 // SPI controller
-logic readBit, readByte, done;
-logic [2:0] byteNum;
+logic sample, done;
 spiControl spiControl (
     .clk(clk),
     .rst(rst),
@@ -25,42 +24,31 @@ spiControl spiControl (
     .sclk(sclk),
     .cs(cs),
 
-    .readBit(readBit),
-    .readByte(readByte),
-    .byteNum(byteNum),
+    .sample(sample),
     .done(done)
 );
 
-// 8-bit shift register to hold input data
-logic [7:0] data;
+// 5-byte shift register to hold input packet
+logic [39:0] packet;
 
-// Read bits from MISO
+// Read bits from MISO into shift register
 always_ff @(posedge clk) begin
-    if (readBit) 
-        data <= {data[6:0], miso};
+    if (sample) 
+        packet <= {packet[38:0], miso};
 end
 
-// 5-byte data packet
-logic [7:0] bytes[5];
-
-// Read byte from shift register once 8 bits are read
-always_ff @(posedge clk) begin
-    if (readByte)
-        bytes[byteNum] <= data;
-end
-
-// Update joystick readings once all bytes are read
+// Update joystick data once entire packet is read
 always_ff @(posedge clk) begin
     if (rst) begin
-        jstkX   <= '0;
-        jstkY   <= '0;
+        jstkX <= '0;
+        jstkY <= '0;
         trigger <= '0;
-        button  <= '0;
+        button <= '0;
     end else if (done) begin
-        jstkX   <= {bytes[1], bytes[0]};
-        jstkY   <= {bytes[3], bytes[2]};
-        trigger <= bytes[4][1];
-        button  <= bytes[4][0];
+        jstkX <= {packet[25:24], packet[39:32]};
+        jstkY <= {packet[9:8], packet[23:16]};
+        trigger <= packet[1];
+        button <= packet[0];
     end
 end
 
