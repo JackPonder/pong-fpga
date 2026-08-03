@@ -51,18 +51,18 @@ wire [9:0] jstkY;
 wire trigger;
 
 spiMaster spiMaster (
-    .clk        (clk),
-    .rst        (1'b0),
+    .clk(clk),
+    .rst(1'b0),
     
-    .sclk       (sclk),
-    .mosi       (mosi),
-    .miso       (miso),
-    .cs         (cs),
+    .sclk(sclk),
+    .mosi(mosi),
+    .miso(miso),
+    .cs(cs),
     
-    .jstkX      (),
-    .jstkY      (jstkY),
-    .trigger    (trigger),
-    .button     ()
+    .jstkX(),
+    .jstkY(jstkY),
+    .trigger(trigger),
+    .button()
 );
 
 gameController control (
@@ -108,12 +108,12 @@ vgaController controller (
     .vSync(vSync)
 );
 
-sevenSegmentDriver driver (
+ssdDriver ssdDriver (
     .clk(clk),
     .rst(1'b0),
 
-    .dp(dp),
     .seg(seg),
+    .dp(dp),
     .an(an)
 );
 
