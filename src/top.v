@@ -1,13 +1,6 @@
 module top (
     input clk,
 
-    // Buttons
-    input btnC,
-    input btnU,
-    input btnL,
-    input btnR,
-    input btnD,
-
     // Switches
     input [15:0] sw,
 
@@ -71,8 +64,8 @@ gameController control (
 
     .paddle1MoveUp(jstkY > 682),
     .paddle1MoveDown(jstkY < 341),
-    .paddle2MoveUp(btnR),
-    .paddle2MoveDown(btnD),
+    .paddle2MoveUp(jstkY > 682),
+    .paddle2MoveDown(jstkY < 341),
 
     .paddle1PosH(paddle1PosH),
     .paddle2PosH(paddle2PosH),
