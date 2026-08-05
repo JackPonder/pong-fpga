@@ -18,6 +18,22 @@ module gameLogic (
     output logic [3:0] score2
 );
 
+////////////////////
+// Enable signals //
+////////////////////
+
+localparam Divisor = 500000;
+logic [18:0] count;
+
+counter #(Divisor) gen (
+    .clk(clk),
+    .rst(rst),
+    .en(1'b1),
+    .count(count)
+);
+
+wire en = (count == Divisor - 1);
+
 /////////////////////
 // Paddle movement //
 /////////////////////
@@ -25,6 +41,7 @@ module gameLogic (
 paddleMovement #(50) paddleMovement1 (
     .clk(clk),
     .rst(rst),
+    .en(en),
 
     .jstk(jstk1),
     .paddleX(paddle1X),
@@ -34,6 +51,7 @@ paddleMovement #(50) paddleMovement1 (
 paddleMovement #(580) paddleMovement2 (
     .clk(clk),
     .rst(rst),
+    .en(en),
 
     .jstk(jstk2),
     .paddleX(paddle2X),
@@ -46,6 +64,8 @@ paddleMovement #(580) paddleMovement2 (
 
 logic collision1;
 logic collision2;
+logic collisionAngle1;
+logic collisionAngle2;
 
 logic incScore1;
 logic incScore2;
@@ -53,9 +73,13 @@ logic incScore2;
 ballMovement ballMovement (
     .clk(clk),
     .rst(rst),
+    .enX(en),
+    .enY(en),
 
     .collision1(collision1),
     .collision2(collision2),
+    .collisionAngle1(collisionAngle1),
+    .collisionAngle2(collisionAngle2),
 
     .ballX(ballX),
     .ballY(ballY),
@@ -73,7 +97,8 @@ collisionDetector detector1 (
     .paddleY(paddle1Y),
     .ballX(ballX),
     .ballY(ballY),
-    .collsion(collision1)
+    .collision(collision1),
+    .collisionAngle(collisionAngle1)
 );
 
 collisionDetector detector2 (
@@ -81,7 +106,8 @@ collisionDetector detector2 (
     .paddleY(paddle2Y),
     .ballX(ballX),
     .ballY(ballY),
-    .collsion(collision2)
+    .collision(collision2),
+    .collisionAngle(collisionAngle2)
 );
 
 ////////////////////
@@ -91,14 +117,14 @@ collisionDetector detector2 (
 counter #(15) scoreCounter1 (
     .clk(clk),
     .rst(rst),
-    .en(incScore1),
+    .en(en && incScore1),
     .count(score1)
 );
 
 counter #(15) scoreCounter2 (
     .clk(clk),
     .rst(rst),
-    .en(incScore2),
+    .en(en && incScore2),
     .count(score2)
 );
 

@@ -1,10 +1,14 @@
 module ballMovement (
     input  logic clk,
     input  logic rst,
+    input  logic enX,
+    input  logic enY,
 
     // Collision flags
     input  logic collision1,
     input  logic collision2,
+    input  logic collisionAngle1,
+    input  logic collisionAngle2,
 
     // Ball position
     output logic [9:0] ballX,
@@ -25,10 +29,6 @@ localparam BallMaxY = 430;
 localparam InitialBallX = 315;
 localparam InitialBallY = 270;
 
-// Timer to slow down clock
-localparam WaitTime = 500000;
-logic [19:0] timer;
-
 // State registers
 logic [9:0] nextBallX;
 logic [8:0] nextBallY;
@@ -42,14 +42,15 @@ always_ff @(posedge clk) begin
         ballY <= InitialBallY;
         ballDirX <= 1'b1;
         ballDirY <= 1'b1;
-    end else if (timer == WaitTime - 1) begin
-        ballX <= nextBallX;
-        ballY <= nextBallY;
-        ballDirX <= nextBallDirX;
-        ballDirY <= nextBallDirY;
-        timer <= '0;
     end else begin
-        timer <= timer + 1'b1;
+        if (enX) begin
+            ballX <= nextBallX;
+            ballDirX <= nextBallDirX;
+        end
+        if (enY) begin
+            ballY <= nextBallY;
+            ballDirY <= nextBallDirY;
+        end
     end
 end
 
@@ -87,16 +88,18 @@ always_comb begin
     // Paddle 1 collision detection
     if (collision1) begin
         nextBallDirX = 1'b1;
+        nextBallDirY = collisionAngle1;
     end
 
     // Paddle 2 collision detection
     else if (collision2) begin
         nextBallDirX = 1'b0;
+        nextBallDirY = collisionAngle2;
     end
 end
 
 // Increment score flags
-assign incScore1 = (ballX == BallMaxX) && (timer == '0);
-assign incScore2 = (ballX == BallMinX) && (timer == '0);
+assign incScore1 = (ballX == BallMaxX);
+assign incScore2 = (ballX == BallMinX);
 
 endmodule

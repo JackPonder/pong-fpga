@@ -12,7 +12,7 @@ always_ff @(posedge clk) begin
     if (rst)
         count <= '0;
     else if (en)
-        count <= count + 1'b1;
+        count <= (count < Max - 1) ? count + 1'b1 : '0;
 end
-    
+
 endmodule
