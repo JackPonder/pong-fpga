@@ -26,19 +26,9 @@ module top (
     output cs
 );
 
-localparam OFFSET_WIDTH = 0;
-localparam OFFSET_HEIGHT = 110;
-
-wire [9:0] paddle1PosH;
-wire [9:0] paddle2PosH;
-wire [9:0] paddle1PosV;
-wire [9:0] paddle2PosV;
-
-wire [9:0] ballPosH;
-wire [9:0] ballPosV;
-
-wire [3:0] score1;
-wire [3:0] score2;
+////////////////////////////
+// Joystick SPI Interface //
+////////////////////////////
 
 wire [9:0] jstkY;
 wire trigger;
@@ -58,6 +48,22 @@ spiMaster spiMaster (
     .button()
 );
 
+////////////////
+// Game Logic //
+////////////////
+
+wire [9:0] paddle1X;
+wire [8:0] paddle1Y;
+
+wire [9:0] paddle2X;
+wire [8:0] paddle2Y;
+
+wire [9:0] ballX;
+wire [8:0] ballY;
+
+wire [3:0] score1;
+wire [3:0] score2;
+
 gameController control (
     .clk(clk),
     .rst(trigger),
@@ -67,39 +73,79 @@ gameController control (
     .paddle2MoveUp(jstkY > 682),
     .paddle2MoveDown(jstkY < 341),
 
-    .paddle1PosH(paddle1PosH),
-    .paddle2PosH(paddle2PosH),
-    .paddle1PosV(paddle1PosV),
-    .paddle2PosV(paddle2PosV),
+    .paddle1PosH(paddle1X),
+    .paddle2PosH(paddle2X),
+    .paddle1PosV(paddle1Y),
+    .paddle2PosV(paddle2Y),
 
-    .ballPosH(ballPosH),
-    .ballPosV(ballPosV),
+    .ballPosH(ballX),
+    .ballPosV(ballY),
 
     .score1(score1),
     .score2(score2)
 );
 
-vgaController controller (
+////////////
+// Clocks //
+////////////
+
+wire clkVga, locked;
+
+clocks clocks (
     .clk(clk),
     .rst(1'b0),
+    .clkVga(clkVga),
+    .locked(locked)
+);
 
-    .paddle1PosH(OFFSET_WIDTH + paddle1PosH),
-    .paddle1PosV(OFFSET_HEIGHT + paddle1PosV),
-    .paddle2PosH(OFFSET_WIDTH + paddle2PosH),
-    .paddle2PosV(OFFSET_HEIGHT + paddle2PosV),
+////////////////
+// VGA Output //
+////////////////
 
-    .ballPosH(OFFSET_WIDTH + ballPosH),
-    .ballPosV(OFFSET_HEIGHT + ballPosV),
+wire [9:0] x;
+wire [8:0] y;
+wire active;
 
+vgaTiming vgaTiming (
+    .clk(clkVga),
+    .rst(!locked),
+
+    .x(x),
+    .y(y),
+    .active(active),
+
+    .hSync(hSync),
+    .vSync(vSync)
+);
+
+localparam [9:0] OffsetX = 0;
+localparam [8:0] OffsetY = 110;
+
+vgaDriver vgaDriver (
+    .clk(clkVga),
+    .rst(!locked),
+
+    .x(x),
+    .y(y),
+    .active(active),
+
+    .paddle1X(OffsetX + paddle1X),
+    .paddle1Y(OffsetY + paddle1Y),
+    .paddle2X(OffsetX + paddle2X),
+    .paddle2Y(OffsetY + paddle2Y),
+    .ballX(OffsetX + ballX),
+    .ballY(OffsetY + ballY),
     .score1(score1),
     .score2(score2),
 
     .vgaRed(vgaRed),
     .vgaGreen(vgaGreen),
-    .vgaBlue(vgaBlue),
-    .hSync(hSync),
-    .vSync(vSync)
+    .vgaBlue(vgaBlue)
 );
+
+////////////////
+// SSD Output //
+////////////////
 
 ssdDriver ssdDriver (
     .clk(clk),
@@ -109,6 +155,10 @@ ssdDriver ssdDriver (
     .dp(dp),
     .an(an)
 );
+
+//////////
+// Misc //
+//////////
 
 assign led = sw;
 
