@@ -1,37 +1,35 @@
 module top (
-    input clk,
+    input  logic clk,
 
-    // Switches
-    input [15:0] sw,
-
-    // LEDs
-    output [15:0] led,
+    // Switches & LEDs
+    input  logic [15:0] sw,
+    output logic [15:0] led,
     
     // VGA display
-    output [3:0] vgaRed, 
-    output [3:0] vgaGreen, 
-    output [3:0] vgaBlue,
-    output hSync, 
-    output vSync,
+    output logic [3:0] vgaRed, 
+    output logic [3:0] vgaGreen, 
+    output logic [3:0] vgaBlue,
+    output logic       hSync, 
+    output logic       vSync,
 
-    // Seven degment display
-    output dp,
-    output [6:0] seg,
-    output [3:0] an,
+    // 7-segment display
+    output logic [6:0] seg,
+    output logic       dp,
+    output logic [3:0] an,
 
     // Pmod joystick
-    output sclk,
-    output mosi,
-    input  miso,
-    output cs
+    output logic sclk,
+    output logic mosi,
+    input  logic miso,
+    output logic cs
 );
 
 ////////////////////////////
 // Joystick SPI Interface //
 ////////////////////////////
 
-wire [9:0] jstkY;
-wire trigger;
+logic [9:0] jstkY;
+logic trigger;
 
 spiMaster spiMaster (
     .clk(clk),
@@ -52,34 +50,29 @@ spiMaster spiMaster (
 // Game Logic //
 ////////////////
 
-wire [9:0] paddle1X;
-wire [8:0] paddle1Y;
+logic [9:0] paddle1X;
+logic [8:0] paddle1Y;
+logic [9:0] paddle2X;
+logic [8:0] paddle2Y;
+logic [9:0] ballX;
+logic [8:0] ballY;
 
-wire [9:0] paddle2X;
-wire [8:0] paddle2Y;
+logic [3:0] score1;
+logic [3:0] score2;
 
-wire [9:0] ballX;
-wire [8:0] ballY;
-
-wire [3:0] score1;
-wire [3:0] score2;
-
-gameController control (
+gameLogic gameLogic (
     .clk(clk),
     .rst(trigger),
 
-    .paddle1MoveUp(jstkY > 682),
-    .paddle1MoveDown(jstkY < 341),
-    .paddle2MoveUp(jstkY > 682),
-    .paddle2MoveDown(jstkY < 341),
+    .jstk1(jstkY),
+    .jstk2(jstkY),
 
-    .paddle1PosH(paddle1X),
-    .paddle2PosH(paddle2X),
-    .paddle1PosV(paddle1Y),
-    .paddle2PosV(paddle2Y),
-
-    .ballPosH(ballX),
-    .ballPosV(ballY),
+    .paddle1X(paddle1X),
+    .paddle1Y(paddle1Y),
+    .paddle2X(paddle2X),
+    .paddle2Y(paddle2Y),
+    .ballX(ballX),
+    .ballY(ballY),
 
     .score1(score1),
     .score2(score2)
@@ -89,7 +82,8 @@ gameController control (
 // Clocks //
 ////////////
 
-wire clkVga, locked;
+logic clkVga;
+logic locked;
 
 clocks clocks (
     .clk(clk),
@@ -102,9 +96,9 @@ clocks clocks (
 // VGA Output //
 ////////////////
 
-wire [9:0] x;
-wire [8:0] y;
-wire active;
+logic [9:0] x;
+logic [8:0] y;
+logic active;
 
 vgaTiming vgaTiming (
     .clk(clkVga),
@@ -118,9 +112,6 @@ vgaTiming vgaTiming (
     .vSync(vSync)
 );
 
-localparam [9:0] OffsetX = 0;
-localparam [8:0] OffsetY = 110;
-
 vgaDriver vgaDriver (
     .clk(clkVga),
     .rst(!locked),
@@ -129,12 +120,12 @@ vgaDriver vgaDriver (
     .y(y),
     .active(active),
 
-    .paddle1X(OffsetX + paddle1X),
-    .paddle1Y(OffsetY + paddle1Y),
-    .paddle2X(OffsetX + paddle2X),
-    .paddle2Y(OffsetY + paddle2Y),
-    .ballX(OffsetX + ballX),
-    .ballY(OffsetY + ballY),
+    .paddle1X(paddle1X),
+    .paddle1Y(paddle1Y),
+    .paddle2X(paddle2X),
+    .paddle2Y(paddle2Y),
+    .ballX(ballX),
+    .ballY(ballY),
     .score1(score1),
     .score2(score2),
 
