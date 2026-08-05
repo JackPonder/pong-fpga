@@ -31,7 +31,10 @@ module vgaDriver (
 localparam ScreenWidth = 640;
 localparam ScreenHeight = 480; 
 
-// Background image row buffer
+// Calculate background pixel address
+wire [18:0] bgAddr = x + y * ScreenWidth;
+
+// Background pixel data
 logic bgPixel;
 
 // ROM for background image
@@ -41,7 +44,7 @@ rom #(
     .Depth(ScreenWidth * ScreenHeight)
 ) bgImage (
     .clk(clk),
-    .addr(x + y * ScreenWidth),
+    .addr(bgAddr),
     .dout(bgPixel)
 );
 
@@ -53,34 +56,40 @@ wire drawBg = bgPixel;
 ////////////
 
 // Scorecard dimensions
-localparam logic [9:0] ScoreWidth = 100;
-localparam logic [8:0] ScoreHeight = 60;
+localparam ScoreWidth = 100;
+localparam ScoreHeight = 60;
 
 // Scorecard positions
-localparam logic [9:0] Score1X = 205;
-localparam logic [9:0] Score2X = 335;
-localparam logic [8:0] ScoreY = 125;
+localparam Score1X = 205;
+localparam Score2X = 335;
+localparam ScoreY = 125;
 
-// Scorecard row buffers
+// Determine if position is within the region to draw the scorecard
+wire activeScore1 = (Score1X <= x && x < Score1X + ScoreWidth) && (ScoreY <= y && y < ScoreY + ScoreHeight);
+wire activeScore2 = (Score2X <= x && x < Score2X + ScoreWidth) && (ScoreY <= y && y < ScoreY + ScoreHeight);
+
+// Calculate score pixel address
+wire [9:0] scoreOffsetX = x - (activeScore1 ? Score1X : Score2X);
+wire [8:0] scoreOffsetY = y - ScoreY;
+wire [12:0] scoreAddr = scoreOffsetX + scoreOffsetY * ScoreWidth;
+
+// Scorecard pixel data
 logic scorePixels[16];
 
 // ROMs for each scorecard
-for (genvar i = 0; i < 16; i++) begin
+for (genvar i = 0; i < 16; i++) begin : scoreRoms
     rom #(
         .InitFile($sformatf("%d.mem", i)),
         .DataWidth(1),
         .Depth(ScoreWidth * ScoreHeight)
-    ) scoreImage (
+    ) inst (
         .clk(clk),
-        .addr('0),
+        .addr(scoreAddr),
         .dout(scorePixels[i])
     );
 end
 
 // Draw pixel logic
-wire activeScore1 = (Score1X <= x && x < Score1X + ScoreWidth) && (ScoreY <= y && y < ScoreY + ScoreHeight);
-wire activeScore2 = (Score2X <= x && x < Score2X + ScoreWidth) && (ScoreY <= y && y < ScoreY + ScoreHeight);
-
 wire drawScore1 = activeScore1 ? scorePixels[score1] : '0;
 wire drawScore2 = activeScore2 ? scorePixels[score2] : '0;
 
