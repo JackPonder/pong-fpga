@@ -22,17 +22,40 @@ module gameLogic (
 // Enable signals //
 ////////////////////
 
-localparam Divisor = 500000;
-logic [18:0] count;
+logic en;
 
-counter #(Divisor) gen (
+enGenerator #(
+    .Width(19)
+) enGen (
     .clk(clk),
     .rst(rst),
-    .en(1'b1),
-    .count(count)
+    .divisor(19'd500000),
+    .en(en)
 );
 
-wire en = (count == Divisor - 1);
+logic [22:0] divisorEnX;
+logic enX;
+
+enGenerator #(
+    .Width(23)
+) enGenX (
+    .clk(clk),
+    .rst(rst),
+    .divisor(divisorEnX),
+    .en(enX)
+);
+
+logic [22:0] divisorEnY;
+logic enY;
+
+enGenerator #(
+    .Width(23)
+) enGenY (
+    .clk(clk),
+    .rst(rst),
+    .divisor(divisorEnY),
+    .en(enY)
+);
 
 /////////////////////
 // Paddle movement //
@@ -73,8 +96,8 @@ logic incScore2;
 ballMovement ballMovement (
     .clk(clk),
     .rst(rst),
-    .enX(en),
-    .enY(en),
+    .enX(enX),
+    .enY(enY),
 
     .collision1(collision1),
     .collision2(collision2),
@@ -92,13 +115,20 @@ ballMovement ballMovement (
 // Collision detection //
 /////////////////////////
 
+logic [22:0] ballAngleX1;
+logic [22:0] ballAngleY1;
+logic [22:0] ballAngleX2;
+logic [22:0] ballAngleY2;
+
 collisionDetector detector1 (
     .paddleX(paddle1X),
     .paddleY(paddle1Y),
     .ballX(ballX),
     .ballY(ballY),
     .collision(collision1),
-    .collisionAngle(collisionAngle1)
+    .collisionAngle(collisionAngle1),
+    .ballAngleX(ballAngleX1),
+    .ballAngleY(ballAngleY1)
 );
 
 collisionDetector detector2 (
@@ -107,8 +137,26 @@ collisionDetector detector2 (
     .ballX(ballX),
     .ballY(ballY),
     .collision(collision2),
-    .collisionAngle(collisionAngle2)
+    .collisionAngle(collisionAngle2),
+    .ballAngleX(ballAngleX2),
+    .ballAngleY(ballAngleY2)
 );
+
+always_ff @(posedge clk) begin
+    if (rst) begin
+        divisorEnX <= 23'd200069;
+        divisorEnY <= 23'd7640310;
+    end else begin
+        if (collision1) begin
+            divisorEnX <= ballAngleX1;
+            divisorEnY <= ballAngleY1;
+        end
+        if (collision2) begin
+            divisorEnX <= ballAngleX2;
+            divisorEnY <= ballAngleY2;
+        end
+    end
+end
 
 ////////////////////
 // Score tracking //
@@ -117,14 +165,14 @@ collisionDetector detector2 (
 counter #(15) scoreCounter1 (
     .clk(clk),
     .rst(rst),
-    .en(en && incScore1),
+    .en(enX && incScore1),
     .count(score1)
 );
 
 counter #(15) scoreCounter2 (
     .clk(clk),
     .rst(rst),
-    .en(en && incScore2),
+    .en(enX && incScore2),
     .count(score2)
 );
 
