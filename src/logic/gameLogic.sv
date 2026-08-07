@@ -87,8 +87,11 @@ paddleMovement #(580) paddleMovement2 (
 
 logic collision1;
 logic collision2;
-logic collisionAngle1;
-logic collisionAngle2;
+logic collisionPoint1;
+logic collisionPoint2;
+
+logic [4:0] hitLocation1;
+logic [4:0] hitLocation2;
 
 logic incScore1;
 logic incScore2;
@@ -101,8 +104,8 @@ ballMovement ballMovement (
 
     .collision1(collision1),
     .collision2(collision2),
-    .collisionAngle1(collisionAngle1),
-    .collisionAngle2(collisionAngle2),
+    .collisionPoint1(collisionPoint1),
+    .collisionPoint2(collisionPoint2),
 
     .ballX(ballX),
     .ballY(ballY),
@@ -111,14 +114,22 @@ ballMovement ballMovement (
     .incScore2(incScore2)
 );
 
+ballSpeed ballSpeed (
+    .clk(clk),
+    .rst(rst),
+
+    .collision1(collision1),
+    .collision2(collision2),
+    .hitLocation1(hitLocation1),
+    .hitLocation2(hitLocation2),
+
+    .divisorEnX(divisorEnX),
+    .divisorEnY(divisorEnY)
+);
+
 /////////////////////////
 // Collision detection //
 /////////////////////////
-
-logic [22:0] ballAngleX1;
-logic [22:0] ballAngleY1;
-logic [22:0] ballAngleX2;
-logic [22:0] ballAngleY2;
 
 collisionDetector detector1 (
     .paddleX(paddle1X),
@@ -126,9 +137,8 @@ collisionDetector detector1 (
     .ballX(ballX),
     .ballY(ballY),
     .collision(collision1),
-    .collisionAngle(collisionAngle1),
-    .ballAngleX(ballAngleX1),
-    .ballAngleY(ballAngleY1)
+    .collisionPoint(collisionPoint1),
+    .hitLocation(hitLocation1)
 );
 
 collisionDetector detector2 (
@@ -137,26 +147,9 @@ collisionDetector detector2 (
     .ballX(ballX),
     .ballY(ballY),
     .collision(collision2),
-    .collisionAngle(collisionAngle2),
-    .ballAngleX(ballAngleX2),
-    .ballAngleY(ballAngleY2)
+    .collisionPoint(collisionPoint2),
+    .hitLocation(hitLocation2)
 );
-
-always_ff @(posedge clk) begin
-    if (rst) begin
-        divisorEnX <= 23'd200069;
-        divisorEnY <= 23'd7640310;
-    end else begin
-        if (collision1) begin
-            divisorEnX <= ballAngleX1;
-            divisorEnY <= ballAngleY1;
-        end
-        if (collision2) begin
-            divisorEnX <= ballAngleX2;
-            divisorEnY <= ballAngleY2;
-        end
-    end
-end
 
 ////////////////////
 // Score tracking //

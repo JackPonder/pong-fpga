@@ -7,8 +7,8 @@ module ballMovement (
     // Collision flags
     input  logic collision1,
     input  logic collision2,
-    input  logic collisionAngle1,
-    input  logic collisionAngle2,
+    input  logic collisionPoint1,
+    input  logic collisionPoint2,
 
     // Ball position
     output logic [9:0] ballX,
@@ -88,13 +88,13 @@ always_comb begin
     // Paddle 1 collision detection
     if (collision1) begin
         nextBallDirX = 1'b1;
-        nextBallDirY = collisionAngle1;
+        nextBallDirY = collisionPoint1;
     end
 
     // Paddle 2 collision detection
     else if (collision2) begin
         nextBallDirX = 1'b0;
-        nextBallDirY = collisionAngle2;
+        nextBallDirY = collisionPoint2;
     end
 end
 
