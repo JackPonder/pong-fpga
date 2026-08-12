@@ -12,6 +12,10 @@ A hardware implementation of the classic Pong game developed for the Digilent Ba
 * 640×480 @ 60 Hz VGA output
 * Synthesizable RTL suitable for implementation on the Basys 3
 
+## Block Diagram
+
+![Block Diagram](docs/diagram.png)
+
 ## Development
 
 ### Requirements
