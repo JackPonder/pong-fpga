@@ -1,10 +1,12 @@
 module top (
     input  logic clk,
 
-    // Switches & LEDs
-    input  logic [15:0] sw,
-    output logic [15:0] led,
-    
+    // Pmod JA
+    output logic [1:0] cs,
+    output logic [1:0] mosi,
+    input  logic [1:0] miso,
+    output logic [1:0] sclk,
+
     // VGA display
     output logic [3:0] vgaRed, 
     output logic [3:0] vgaGreen, 
@@ -15,35 +17,57 @@ module top (
     // 7-segment display
     output logic [6:0] seg,
     output logic       dp,
-    output logic [3:0] an,
-
-    // Pmod joystick
-    output logic sclk,
-    output logic mosi,
-    input  logic miso,
-    output logic cs
+    output logic [3:0] an
 );
 
-////////////////////////////
-// Joystick SPI Interface //
-////////////////////////////
+////////////
+// Clocks //
+////////////
 
-logic [9:0] jstkY;
-logic trigger;
+logic clkVga;
+logic locked;
 
-spiMaster spiMaster (
+clocks clocks (
+    .clk(clk),
+    .rst(1'b0),
+    .clkVga(clkVga),
+    .locked(locked)
+);
+
+//////////////////////////
+// Joystick SPI Masters //
+//////////////////////////
+
+logic [9:0] jstk1Y;
+logic [9:0] jstk2Y;
+logic [1:0] buttons;
+
+spiMaster master1 (
     .clk(clk),
     .rst(1'b0),
     
-    .sclk(sclk),
-    .mosi(mosi),
-    .miso(miso),
-    .cs(cs),
+    .sclk(sclk[0]),
+    .mosi(mosi[0]),
+    .miso(miso[0]),
+    .cs(cs[0]),
     
     .jstkX(),
-    .jstkY(jstkY),
-    .trigger(trigger),
-    .button()
+    .jstkY(jstk1Y),
+    .buttons(buttons)
+);
+
+spiMaster master2 (
+    .clk(clk),
+    .rst(1'b0),
+    
+    .sclk(sclk[1]),
+    .mosi(mosi[1]),
+    .miso(miso[1]),
+    .cs(cs[1]),
+    
+    .jstkX(),
+    .jstkY(jstk2Y),
+    .buttons()
 );
 
 ////////////////
@@ -62,10 +86,10 @@ logic [3:0] score2;
 
 gameLogic gameLogic (
     .clk(clk),
-    .rst(trigger),
+    .rst(buttons[1]),
 
-    .jstk1(jstkY),
-    .jstk2(jstkY),
+    .jstk1(jstk1Y),
+    .jstk2(jstk2Y),
 
     .paddle1X(paddle1X),
     .paddle1Y(paddle1Y),
@@ -76,20 +100,6 @@ gameLogic gameLogic (
 
     .score1(score1),
     .score2(score2)
-);
-
-////////////
-// Clocks //
-////////////
-
-logic clkVga;
-logic locked;
-
-clocks clocks (
-    .clk(clk),
-    .rst(1'b0),
-    .clkVga(clkVga),
-    .locked(locked)
 );
 
 ////////////////
@@ -146,11 +156,5 @@ ssdDriver ssdDriver (
     .dp(dp),
     .an(an)
 );
-
-//////////
-// Misc //
-//////////
-
-assign led = sw;
 
 endmodule

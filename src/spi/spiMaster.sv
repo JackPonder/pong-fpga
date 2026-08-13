@@ -11,13 +11,12 @@ module spiMaster (
     // Joystick data
     output logic [9:0] jstkX,
     output logic [9:0] jstkY,
-    output logic       trigger,
-    output logic       button
+    output logic [1:0] buttons
 );
 
-// SPI controller
+// SPI timing signals
 logic sample, done;
-spiControl spiControl (
+spiTiming spiTiming (
     .clk(clk),
     .rst(rst),
 
@@ -42,13 +41,11 @@ always_ff @(posedge clk) begin
     if (rst) begin
         jstkX <= '0;
         jstkY <= '0;
-        trigger <= '0;
-        button <= '0;
+        buttons <= '0;
     end else if (done) begin
         jstkX <= {packet[25:24], packet[39:32]};
         jstkY <= {packet[9:8], packet[23:16]};
-        trigger <= packet[1];
-        button <= packet[0];
+        buttons <= packet[1:0];
     end
 end
 
