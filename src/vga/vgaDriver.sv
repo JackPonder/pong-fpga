@@ -2,11 +2,6 @@ module vgaDriver (
     input  logic clk,
     input  logic rst,
 
-    // Screen position
-    input  logic [9:0] x,
-    input  logic [8:0] y,
-    input  logic       active,
-
     // Game state
     input  logic [9:0] paddle1X,
     input  logic [8:0] paddle1Y,
@@ -17,10 +12,32 @@ module vgaDriver (
     input  logic [3:0] score1,
     input  logic [3:0] score2,
 
-    // VGA pixel color
+    // VGA output
     output logic [3:0] vgaRed,
     output logic [3:0] vgaGreen,
-    output logic [3:0] vgaBlue
+    output logic [3:0] vgaBlue,
+    output logic       hSync,
+    output logic       vSync
+);
+
+////////////////
+// VGA Timing //
+////////////////
+
+logic [9:0] x;
+logic [8:0] y;
+logic active;
+
+vgaTiming vgaTiming (
+    .clk(clk),
+    .rst(rst),
+
+    .x(x),
+    .y(y),
+    .active(active),
+
+    .hSync(hSync),
+    .vSync(vSync)
 );
 
 //////////////////////

@@ -1,7 +1,7 @@
 module top (
     input  logic clk,
 
-    // Pmod JA
+    // SPI joysticks
     output logic [1:0] cs,
     output logic [1:0] mosi,
     input  logic [1:0] miso,
@@ -106,29 +106,9 @@ gameLogic gameLogic (
 // VGA Output //
 ////////////////
 
-logic [9:0] x;
-logic [8:0] y;
-logic active;
-
-vgaTiming vgaTiming (
-    .clk(clkVga),
-    .rst(!locked),
-
-    .x(x),
-    .y(y),
-    .active(active),
-
-    .hSync(hSync),
-    .vSync(vSync)
-);
-
 vgaDriver vgaDriver (
     .clk(clkVga),
     .rst(!locked),
-
-    .x(x),
-    .y(y),
-    .active(active),
 
     .paddle1X(paddle1X),
     .paddle1Y(paddle1Y),
@@ -141,7 +121,9 @@ vgaDriver vgaDriver (
 
     .vgaRed(vgaRed),
     .vgaGreen(vgaGreen),
-    .vgaBlue(vgaBlue)
+    .vgaBlue(vgaBlue),
+    .hSync(hSync),
+    .vSync(vSync)
 );
 
 ////////////////
