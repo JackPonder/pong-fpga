@@ -9,18 +9,13 @@ set project_root [file dirname $script_dir]
 
 # Read design sources
 set src_dir "$project_root/src"
-set src_files [glob "$src_dir/*.v"]
-read_verilog $src_files
-
-# Read memory files
-set mem_dir "$src_dir/mem"
-set mem_files [glob "$mem_dir/*.mem"]
-read_mem $mem_files
+read_verilog -sv [glob "$src_dir/*.sv"]
+read_verilog -sv [glob "$src_dir/*/*.sv"]
+read_mem [glob "$src_dir/*/*/*.mem"]
 
 # Read constraints
 set constr_dir "$project_root/constraints"
-set constr_files [glob "$constr_dir/*.xdc"]
-read_xdc $constr_files
+read_xdc [glob "$constr_dir/*.xdc"]
 
 # Run synthesis
 synth_design -top $top_module -part $fpga_part
@@ -36,7 +31,7 @@ file mkdir $output_dir
 
 # Generate reports
 report_utilization -file "$output_dir/utilization.rpt"
-report_timing_summary -file "$output_dir/timing_summary.rpt"
+report_timing_summary -file "$output_dir/timing.rpt"
 report_drc -file "$output_dir/drc.rpt"
 
 # Write bitstream

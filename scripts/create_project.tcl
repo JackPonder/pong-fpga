@@ -1,6 +1,7 @@
 # Project settings
 set project_name "pong"
 set fpga_part "xc7a35tcpg236-1"
+set top_module "top"
 
 # Set project root
 set script_dir [file normalize [file dirname [info script]]]
@@ -11,23 +12,14 @@ set build_dir "$project_root/build"
 create_project $project_name $build_dir -part $fpga_part -force
 
 # Add design sources
-set rtl_dir "$project_root/src"
-set rtl_files [glob -nocomplain "$rtl_dir/*.v" "$rtl_dir/mem/*.mem"]
-add_files $rtl_files
+set src_dir "$project_root/src"
+add_files [glob "$src_dir/*.sv"]
+add_files [glob "$src_dir/*/*.sv"]
+add_files [glob "$src_dir/*/*/*.mem"]
 
 # Add constraints
 set constr_dir "$project_root/constraints"
-set constr_files [glob -nocomplain "$constr_dir/*.xdc"]
-add_files -fileset constrs_1 $constr_files
+add_files -fileset constrs_1 [glob "$constr_dir/*.xdc"]
 
 # Set top module
-set top_module "top"
 set_property top $top_module [current_fileset]
-
-# Add dimulation sources
-set sim_dir "$project_root/sim"
-set sim_files [glob -nocomplain "$sim_dir/*.v" "$sim_dir/*.wcfg"]
-add_files -fileset sim_1 $sim_files
-
-update_compile_order -fileset sources_1
-update_compile_order -fileset sim_1
