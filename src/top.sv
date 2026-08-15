@@ -8,10 +8,10 @@ module top (
     output logic [1:0] sclk,
 
     // VGA display
-    output logic [3:0] vgaRed, 
-    output logic [3:0] vgaGreen, 
+    output logic [3:0] vgaRed,
+    output logic [3:0] vgaGreen,
     output logic [3:0] vgaBlue,
-    output logic       hSync, 
+    output logic       hSync,
     output logic       vSync,
 
     // 7-segment display
@@ -45,12 +45,12 @@ logic [1:0] buttons;
 spiMaster master1 (
     .clk(clk),
     .rst(1'b0),
-    
+
     .sclk(sclk[0]),
     .mosi(mosi[0]),
     .miso(miso[0]),
     .cs(cs[0]),
-    
+
     .jstkX(),
     .jstkY(jstk1Y),
     .buttons(buttons)
@@ -59,12 +59,12 @@ spiMaster master1 (
 spiMaster master2 (
     .clk(clk),
     .rst(1'b0),
-    
+
     .sclk(sclk[1]),
     .mosi(mosi[1]),
     .miso(miso[1]),
     .cs(cs[1]),
-    
+
     .jstkX(),
     .jstkY(jstk2Y),
     .buttons()
