@@ -24,7 +24,7 @@ localparam InitialPaddleY = 250;
 always @(posedge clk) begin
     if (rst) begin
         paddleY <= InitialPaddleY;
-    end if (en) begin
+    end else if (en) begin
         if ((jstk > 682) && (paddleY > PaddleMinY))
             paddleY <= paddleY - 1'b1;
         else if ((jstk < 381) && (paddleY < PaddleMaxY))
